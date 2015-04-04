@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -38,6 +39,9 @@ func (c *Comment) FieldMap() binding.FieldMap {
 	}
 }
 
+var ADMIN_USER = os.Getenv("BA_USER")
+var ADMIN_PASS = os.Getenv("BA_PASS")
+
 const NUMBER_POSTS_PER_PAGE = 5
 
 // renderer is our global renderer, used for returning pretty JSON
@@ -47,6 +51,9 @@ var renderer = render.New(render.Options{IndentJSON: true})
 var templates = template.Must(template.ParseGlob("templates/*"))
 
 func main() {
+	if ADMIN_USER == "" || ADMIN_PASS == "" {
+		log.Fatalln("need to set admin username and password")
+	}
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
@@ -157,6 +164,12 @@ func addCommentToPost(w http.ResponseWriter, req *http.Request) {
 // addBlogTask tasks a file and information posted to this endpoint and saves
 // it in the DB as a blog post
 func addBlogPost(w http.ResponseWriter, req *http.Request) {
+	username, password, _ := req.BasicAuth()
+	if username != os.Getenv("BA_USER") || password != os.Getenv("BA_PASS") {
+		renderer.JSON(w, 403, "Be gone, pest")
+		return
+	}
+
 	var post Post
 
 	// the FormFile function takes in the POST input id file
