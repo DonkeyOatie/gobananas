@@ -63,36 +63,38 @@ func main() {
 	r := mux.NewRouter().StrictSlash(false)
 
 	// Home Page
-	r.HandleFunc("/", viewHomePage).Methods("GET")
+	r.HandleFunc("/", handleViewHomePage).Methods("GET")
 
 	// blog list view
-	r.HandleFunc("/blog/", viewBlogListView).Methods("GET")
-	r.HandleFunc("/blog/{page}", viewBlogListView).Methods("GET")
+	r.HandleFunc("/blog/", handleViewBlogList).Methods("GET")
+	r.HandleFunc("/blog/{page}", handleViewBlogList).Methods("GET")
 
 	// post detail view
-	r.HandleFunc("/article/{id}", viewBlogPost).Methods("GET")
+	r.HandleFunc("/article/{id}", handleViewBlogPost).Methods("GET")
 
 	// post add view
-	r.HandleFunc("/article/", addBlogPost).Methods("POST")
+	r.HandleFunc("/article/", handleAddBlogPost).Methods("POST")
+
+	r.HandleFunc("/article/update/{id}", handleUpdateBlogPost).Methods("POST")
 
 	// contact view
-	r.HandleFunc("/contact/", viewContactPage).Methods("GET")
+	r.HandleFunc("/contact/", handleViewContactPage).Methods("GET")
 
 	// create a comment
-	r.HandleFunc("/comment/", addCommentToPost).Methods("POST")
+	r.HandleFunc("/comment/", handleAddCommentToPost).Methods("POST")
 
 	http.Handle("/", r)
 
 	http.ListenAndServe(":8000", nil)
 }
 
-// viewHomePage renders the index.html template
-func viewHomePage(w http.ResponseWriter, req *http.Request) {
+// handleViewHomePage renders the index.html template
+func handleViewHomePage(w http.ResponseWriter, req *http.Request) {
 	templates.ExecuteTemplate(w, "index", nil)
 }
 
-// viewHomePage renders the list.html template
-func viewBlogListView(w http.ResponseWriter, req *http.Request) {
+// handleViewBlogList renders the list.html template
+func handleViewBlogList(w http.ResponseWriter, req *http.Request) {
 	var page_int int
 	var offset int
 	var post_list PostList
@@ -124,8 +126,8 @@ func viewBlogListView(w http.ResponseWriter, req *http.Request) {
 	templates.ExecuteTemplate(w, "blog_list", post_list)
 }
 
-// viewBlogPost renders a single blog post corresponding to the id in the URL
-func viewBlogPost(w http.ResponseWriter, req *http.Request) {
+// handleViewBlogPost renders a single blog post corresponding to the id in the URL
+func handleViewBlogPost(w http.ResponseWriter, req *http.Request) {
 	var post_page PostPage
 
 	vars := mux.Vars(req)
@@ -145,13 +147,13 @@ func viewBlogPost(w http.ResponseWriter, req *http.Request) {
 	templates.ExecuteTemplate(w, "blog", &post_page)
 }
 
-// viewContactPage renders the contact template
-func viewContactPage(w http.ResponseWriter, req *http.Request) {
+// handleViewContactPage renders the contact template
+func handleViewContactPage(w http.ResponseWriter, req *http.Request) {
 	templates.ExecuteTemplate(w, "contact", nil)
 }
 
-// addCommentToPost takes comment data and adds it to the post
-func addCommentToPost(w http.ResponseWriter, req *http.Request) {
+// handleAddCommentToPost takes comment data and adds it to the post
+func handleAddCommentToPost(w http.ResponseWriter, req *http.Request) {
 	var comment Comment
 
 	binding.Bind(req, &comment)
@@ -164,25 +166,75 @@ func addCommentToPost(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, url, http.StatusFound)
 }
 
-// addBlogTask tasks a file and information posted to this endpoint and saves
-// it in the DB as a blog post
-func addBlogPost(w http.ResponseWriter, req *http.Request) {
+// checkBasicAuth checks the admin username and password
+func checkBasicAuth(w http.ResponseWriter, req *http.Request) bool {
 	username, password, _ := req.BasicAuth()
 	if username != os.Getenv("BA_USER") || password != os.Getenv("BA_PASS") {
 		renderer.JSON(w, 403, "Be gone, pest")
+		return false
+	}
+	return true
+}
+
+// handleAddBlogTask tasks a file and information posted to this endpoint and saves
+// it in the DB as a blog post
+func handleAddBlogPost(w http.ResponseWriter, req *http.Request) {
+	if !checkBasicAuth(w, req) {
 		return
 	}
 
 	var post Post
 
+	title := req.FormValue("title")
+	if title == "" {
+		renderer.JSON(w, 400, "you have to have a title!")
+		return
+	}
+
+	content, err := processFileUpload(w, req)
+	if err != nil {
+		return
+	}
+	post.Body = content
+	post.Title = title
+	createBlogPost(post)
+}
+
+// handleUpdateBlogPost updates the post with the given id
+func handleUpdateBlogPost(w http.ResponseWriter, req *http.Request) {
+	if !checkBasicAuth(w, req) {
+		return
+	}
+
+	vars := mux.Vars(req)
+	id, err := strconv.Atoi(vars["id"])
+
+	if err != nil {
+		renderer.JSON(w, 400, "Invalid article request")
+		return
+	}
+
+	post, _ := getBlogPost(id)
+
+	content, err := processFileUpload(w, req)
+	if err != nil {
+		return
+	}
+
+	post.Body = content
+	updateBlogPost(id, post)
+}
+
+// processFileUpload takes an uploaded file and returns a byte stream
+func processFileUpload(w http.ResponseWriter, req *http.Request) ([]byte, error) {
+	var content []byte
+
 	// the FormFile function takes in the POST input id file
 	file, _, err := req.FormFile("file")
 
-	title := req.FormValue("title")
-
 	if err != nil {
 		renderer.JSON(w, 500, "Failed to receive file")
-		return
+		return content, err
 	}
 
 	defer file.Close()
@@ -190,7 +242,7 @@ func addBlogPost(w http.ResponseWriter, req *http.Request) {
 	out, err := os.Create("/tmp/new_post")
 	if err != nil {
 		renderer.JSON(w, 500, "Failed to create tmp file")
-		return
+		return content, err
 	}
 
 	defer out.Close()
@@ -198,11 +250,9 @@ func addBlogPost(w http.ResponseWriter, req *http.Request) {
 	//  write the content from POST to the file
 	_, err = io.Copy(out, file)
 	if err != nil {
-		fmt.Fprintln(w, err)
+		return content, err
 	}
 
-	content, _ := ioutil.ReadFile("/tmp/new_post")
-	post.Body = content
-	post.Title = title
-	createBlogPost(post)
+	content, err = ioutil.ReadFile("/tmp/new_post")
+	return content, err
 }

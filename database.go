@@ -88,6 +88,17 @@ func createBlogPost(p Post) error {
 	return err
 }
 
+// updateBlogPost updates the post with the specified id
+func updateBlogPost(id int, p Post) error {
+	const query = `UPDATE post
+	               SET body=$2
+		       WHERE id=$1`
+
+	_, err := db.Exec(query, id, p.Body)
+	CheckQueryErr(err, query)
+	return err
+}
+
 // getBlogPosts returns all posts from the database
 func getBlogPosts(offset int) ([]Post, error) {
 	const query = `SELECT id, title, body, date_published
