@@ -1,0 +1,38 @@
+{{ define "blog_list" }}
+{{ template "header_without_quote" }}
+
+<body>
+<div class="row">
+    <div class="ten columns">
+    {{ range .Posts }}
+        <div class="row">
+            <div class="eight columns">
+                <a class="title" href="/article/{{ .Id }}">{{.Title}}</a>
+            </div>
+            <div class="two columns">
+                <em>{{.Date_Published.Day }}-{{.Date_Published.Month}}-{{.Date_Published.Year}}</em>
+            </div>
+        </div>
+        <div class="row">
+            <div class="ten columns">
+                <p class="sample">{{.HtmlBodySample}}</p>
+            </div>
+        </div>
+    </br>
+    {{ end }}
+    </div>
+</div>
+<div class="row">
+    <div class="five columns">
+        {{ if .Less }}
+            <a href="/blog/{{ .Prev_Page }}">&lt- Previous</a>
+        {{ end }}
+    </div>
+    <div class="five columns u-pull-right">
+        {{ if .More }}
+            <a href="/blog/{{ .Next_Page }}">Next -&gt</a>
+        {{ end }}
+    </div>
+</div>
+</body>
+{{ end }}

@@ -1,0 +1,54 @@
+{{ define "blog" }}
+{{ template "header_without_quote" }}
+
+<body>
+<div class="row">
+    <div class="eight columns">
+        <h2>{{.Post.Title}}</h2>
+    </div>
+    <div class="four columns">
+        <em>{{.Post.Date_Published.Day }}-{{.Post.Date_Published.Month}}-{{.Post.Date_Published.Year}}</em>
+    </div>
+</div>
+<div class="row article">
+    {{.Post.HtmlBody}}
+</div>
+<hr />
+<h2>Comments</h2>
+<hr />
+{{ range .Comments }}
+<div class="row">
+    <div class="ten columns comment">
+        <p>{{ .Body }}</p>
+        <div class="u-pull-right">
+            <p><span class="u-pull-right"><em>{{ .Author }}</em></span><br>
+            <span class="u-pull-right">{{.Date_Commented.Day }}-{{.Date_Commented.Month}}-{{.Date_Commented.Year}}</span></p>
+        </div>
+    </div>
+</div>
+<hr />
+{{ end }}
+<div class="row">
+    <form action="/comment/" method="POST">
+        <div class="ten columns">
+            <div class="row">
+                <label for="author">Author</label>
+                <input name="author" class="u-full-width" id="author" type="text" placeholder="email address...">
+            </div>
+        </div>
+        <div class="row">
+            <div class="ten columns">
+                <label for="comment">Comment</label>
+                <textarea name="comment" class="u-full-width" id="comment" type="text" placeholder="comment..."></textarea>
+            </div>
+        </div>
+        <input style="display: none" id="post_id" name="post_id" class="hidden" type="text" value="{{ .Post.Id }}">
+        <div class="row">
+            <div class="ten columns">
+                <input class="button-primary u-pull-right" value="Comment" type="submit">
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+{{ end }}
