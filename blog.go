@@ -42,19 +42,22 @@ func (c *Comment) FieldMap() binding.FieldMap {
 var ADMIN_USER = os.Getenv("BA_USER")
 var ADMIN_PASS = os.Getenv("BA_PASS")
 
+var TEMPLATE_DIR = os.Getenv("TEMPLATE_DIR")
+var STATIC_DIR = os.Getenv("STATIC_DIR")
+
 const NUMBER_POSTS_PER_PAGE = 5
 
 // renderer is our global renderer, used for returning pretty JSON
 var renderer = render.New(render.Options{IndentJSON: true})
 
 // parse the templates once and hold them in memory
-var templates = template.Must(template.ParseGlob("templates/*"))
+var templates = template.Must(template.ParseGlob(fmt.Sprintf("%s/*", TEMPLATE_DIR)))
 
 func main() {
 	if ADMIN_USER == "" || ADMIN_PASS == "" {
 		log.Fatalln("need to set admin username and password")
 	}
-	fs := http.FileServer(http.Dir("static"))
+	fs := http.FileServer(http.Dir(STATIC_DIR))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	r := mux.NewRouter().StrictSlash(false)
