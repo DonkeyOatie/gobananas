@@ -16,7 +16,7 @@ def deploy():
                          remote_path=remote_path)
         local(cmd)
 
-    sudo("mv %s/%s /usr/local/bin" % (remote_path, NAME))
+    sudo("mv %s/%s /usr/bin" % (remote_path, NAME))
     sudo("supervisorctl restart %s" % NAME)
 
 
