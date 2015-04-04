@@ -5,7 +5,10 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -58,6 +61,9 @@ func main() {
 
 	// post detail view
 	r.HandleFunc("/article/{id}", viewBlogPost).Methods("GET")
+
+	// post add view
+	r.HandleFunc("/article/", addBlogPost).Methods("POST")
 
 	// contact view
 	r.HandleFunc("/contact/", viewContactPage).Methods("GET")
@@ -146,4 +152,41 @@ func addCommentToPost(w http.ResponseWriter, req *http.Request) {
 	}
 	url := fmt.Sprintf("/article/%d", comment.Post_Id)
 	http.Redirect(w, req, url, http.StatusFound)
+}
+
+// addBlogTask tasks a file and information posted to this endpoint and saves
+// it in the DB as a blog post
+func addBlogPost(w http.ResponseWriter, req *http.Request) {
+	var post Post
+
+	// the FormFile function takes in the POST input id file
+	file, _, err := req.FormFile("file")
+
+	title := req.FormValue("title")
+
+	if err != nil {
+		renderer.JSON(w, 500, "Failed to receive file")
+		return
+	}
+
+	defer file.Close()
+
+	out, err := os.Create("/tmp/new_post")
+	if err != nil {
+		renderer.JSON(w, 500, "Failed to create tmp file")
+		return
+	}
+
+	defer out.Close()
+
+	//  write the content from POST to the file
+	_, err = io.Copy(out, file)
+	if err != nil {
+		fmt.Fprintln(w, err)
+	}
+
+	content, _ := ioutil.ReadFile("/tmp/new_post")
+	post.Body = content
+	post.Title = title
+	createBlogPost(post)
 }

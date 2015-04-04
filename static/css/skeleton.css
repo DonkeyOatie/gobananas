@@ -244,6 +244,10 @@ label > .label-body {
     padding-right: 2em;
 }
 
+.footer {
+    font-size: 60%;
+}
+
 /* Code
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 code {
