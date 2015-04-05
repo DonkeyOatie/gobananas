@@ -6,7 +6,7 @@ NAME = "golang_blog"
 
 
 def deploy():
-    cmd = "scp {options} {local_path} {host}:{remote_path}"
+    cmd = "scp {local_path} root@{host}:{remote_path}"
 
     remote_path = "/tmp"
 

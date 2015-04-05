@@ -17,20 +17,6 @@ import (
 	"github.com/unrolled/render"
 )
 
-type PostList struct {
-	Posts        []Post
-	Next_Page    int
-	Prev_Page    int
-	Current_Page int
-	More         bool
-	Less         bool
-}
-
-type PostPage struct {
-	Post     Post
-	Comments []Comment
-}
-
 func (c *Comment) FieldMap() binding.FieldMap {
 	return binding.FieldMap{
 		&c.Author:  "author",
@@ -97,7 +83,6 @@ func handleViewHomePage(w http.ResponseWriter, req *http.Request) {
 func handleViewBlogList(w http.ResponseWriter, req *http.Request) {
 	var page_int int
 	var offset int
-	var post_list PostList
 	var err error
 
 	vars := mux.Vars(req)
@@ -113,23 +98,29 @@ func handleViewBlogList(w http.ResponseWriter, req *http.Request) {
 
 	offset = (page_int - 1) * NUMBER_POSTS_PER_PAGE
 	nPosts, _ := getNumberOfPosts()
+	posts, _ := getBlogPosts(offset)
 
-	post_list.Posts, _ = getBlogPosts(offset)
-
-	post_list.More = (offset + NUMBER_POSTS_PER_PAGE) < nPosts
-	post_list.Less = page_int > 1
-
-	post_list.Next_Page = page_int + 1
-	post_list.Prev_Page = page_int - 1
-	post_list.Current_Page = page_int
+	post_list := struct {
+		Posts        []Post
+		Next_Page    int
+		Prev_Page    int
+		Current_Page int
+		More         bool
+		Less         bool
+	}{
+		posts,
+		page_int + 1,
+		page_int - 1,
+		page_int,
+		(offset + NUMBER_POSTS_PER_PAGE) < nPosts,
+		page_int > 1,
+	}
 
 	templates.ExecuteTemplate(w, "blog_list", post_list)
 }
 
 // handleViewBlogPost renders a single blog post corresponding to the id in the URL
 func handleViewBlogPost(w http.ResponseWriter, req *http.Request) {
-	var post_page PostPage
-
 	vars := mux.Vars(req)
 	id, err := strconv.Atoi(vars["id"])
 
@@ -141,8 +132,13 @@ func handleViewBlogPost(w http.ResponseWriter, req *http.Request) {
 	post, _ := getBlogPost(id)
 	comments, _ := getCommentsForPost(id)
 
-	post_page.Post = post
-	post_page.Comments = comments
+	post_page := struct {
+		Post     Post
+		Comments []Comment
+	}{
+		post,
+		comments,
+	}
 
 	templates.ExecuteTemplate(w, "blog", &post_page)
 }
