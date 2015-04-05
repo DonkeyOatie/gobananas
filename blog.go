@@ -140,7 +140,7 @@ func handleViewBlogPost(w http.ResponseWriter, req *http.Request) {
 		comments,
 	}
 
-	templates.ExecuteTemplate(w, "blog", &post_page)
+	templates.ExecuteTemplate(w, "blog", post_page)
 }
 
 // handleViewContactPage renders the contact template
