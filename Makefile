@@ -1,7 +1,13 @@
-all: build test lint
+all: deps build test lint
+
+ci: test lint
+
+deps:
+	goimports -w .
+	go get .
+	go get github.com/stretchr/testify
 
 test:
-	go get github.com/stretchr/testify
 	DBNAME=testdb go test -coverprofile=coverage.out
 
 cover: test
@@ -11,8 +17,6 @@ coverhtml: test
 	go tool cover -html=coverage.out
 
 build: clean
-	goimports -w .
-	go get .
 	go build
 	strip gobananas
 
