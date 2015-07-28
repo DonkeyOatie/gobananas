@@ -11,7 +11,7 @@ def deploy():
 
     remote_path = "/tmp"
     template_path = "/var/www/templates/"
-    static_path = "/var/www/static/"
+    static_path = "/var/www/nkhumphreys/assets/static/"
 
     for h in env.hosts:
         cmd = base_cmd.format(local_path=NAME,
