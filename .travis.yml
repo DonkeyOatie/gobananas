@@ -15,3 +15,9 @@ env:
 install: make deps
 
 script: make ci
+
+notifications:
+    email:
+        - nkhumphreys@gmail.com
+    on_success: always
+    on_failure: always
