@@ -10,7 +10,7 @@ before_script:
     - psql -c 'create database testdb;' -U postgres
 
 env:
-    - DBUSER=postgres DBHOST=localhost TEMPLATE_DIR=./templates STATIC_DIR=./static
+    - DBUSER=postgres DBPASS=test TEMPLATE_DIR=./templates STATIC_DIR=./static
 
 install: make deps
 
