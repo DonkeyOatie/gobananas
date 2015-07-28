@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/nkhumphreys/gobananas.svg)](https://travis-ci.org/nkhumphreys/gobananas)
+
 # golang_blog
 My personal blog site written in go
 
