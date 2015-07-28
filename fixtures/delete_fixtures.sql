@@ -1,0 +1,2 @@
+DROP TABLE post CASCADE;
+DROP TABLE comments;

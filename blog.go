@@ -17,7 +17,7 @@ import (
 	"github.com/unrolled/render"
 )
 
-func (c *Comment) FieldMap() binding.FieldMap {
+func (c *Comment) FieldMap(httpRequest *http.Request) binding.FieldMap {
 	return binding.FieldMap{
 		&c.Author:  "author",
 		&c.Body:    "comment",
@@ -39,13 +39,7 @@ var renderer = render.New(render.Options{IndentJSON: true})
 // parse the templates once and hold them in memory
 var templates = template.Must(template.ParseGlob(fmt.Sprintf("%s/*", TEMPLATE_DIR)))
 
-func main() {
-	if ADMIN_USER == "" || ADMIN_PASS == "" {
-		log.Fatalln("need to set admin username and password")
-	}
-	fs := http.FileServer(http.Dir(STATIC_DIR))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
-
+func Handlers() *mux.Router {
 	r := mux.NewRouter().StrictSlash(false)
 
 	// Home Page
@@ -69,7 +63,17 @@ func main() {
 	// create a comment
 	r.HandleFunc("/comment/", handleAddCommentToPost).Methods("POST")
 
-	http.Handle("/", r)
+	return r
+}
+
+func main() {
+	if ADMIN_USER == "" || ADMIN_PASS == "" {
+		log.Fatalln("need to set admin username and password")
+	}
+	fs := http.FileServer(http.Dir(STATIC_DIR))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	http.Handle("/", Handlers())
 
 	http.ListenAndServe(":8000", nil)
 }

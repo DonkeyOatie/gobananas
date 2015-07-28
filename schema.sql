@@ -1,6 +1,3 @@
-CREATE DATABASE blogdb;
-\c blogdb;
-
 CREATE TABLE post (
   id BIGSERIAL PRIMARY KEY,
   title varchar(30) NOT NULL,

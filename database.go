@@ -44,8 +44,8 @@ var db = initDb()
 // connection handler
 func initDb() *sqlx.DB {
 	dbHost := "localhost"
-	dbUser := "blogadmin"
-	dbName := "blogdb"
+	dbUser := os.Getenv("DBUSER")
+	dbName := os.Getenv("DBNAME")
 	sslMode := "disable"
 	dbPass := os.Getenv("DBPASS")
 

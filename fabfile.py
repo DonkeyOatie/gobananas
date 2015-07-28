@@ -2,13 +2,13 @@ from fabric.api import local, env, sudo
 
 env.hosts = ['nkhumphreys.co.uk']
 
-NAME = "golang_blog"
+NAME = "gobananas"
 
 
 def deploy():
     cmd = "scp {local_path} root@{host}:{remote_path}"
 
-    remote_path = "/tmp"
+    remote_path = "/tmp/golang_blog"
 
     for h in env.hosts:
         cmd = cmd.format(local_path=NAME,
