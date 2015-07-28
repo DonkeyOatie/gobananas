@@ -10,8 +10,7 @@ before_script:
     - psql -C 'create database testdb;' -U postgres
 
 env:
-    - DBUSER=postgres
-    - DBHOST=localhost
+    - DBUSER=postgres DBHOST=localhost
 
 install: make deps
 

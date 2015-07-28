@@ -3,10 +3,10 @@ all: deps build test lint
 ci: test lint
 
 deps:
-	goimports -w .
-	go get .
 	go get golang.org/x/tools/cmd/goimports
 	go get github.com/stretchr/testify
+	goimports -w .
+	go get .
 
 test:
 	DBNAME=testdb go test -coverprofile=coverage.out
