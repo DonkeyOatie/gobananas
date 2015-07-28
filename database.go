@@ -11,31 +11,33 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Post struct {
-	Id             int
-	Title          string
-	Body           []byte
-	Date_Published time.Time
+type post struct {
+	ID            int       `db:"id"`
+	Title         string    `db:"title"`
+	Body          []byte    `db:"body"`
+	DatePublished time.Time `db:"date_published"`
 }
 
-type Comment struct {
-	Post_Id        int
-	Author         string
-	Body           string
-	Date_Commented time.Time
+type comment struct {
+	PostID        int       `db:"post_id"`
+	Author        string    `db:"author"`
+	Body          string    `db:"body"`
+	DateCommented time.Time `db:"date_commented"`
 }
 
-func (p Post) HtmlBody() template.HTML {
+// HTMLBody returns the html formatted body for the post
+func (p post) HTMLBody() template.HTML {
 	return template.HTML(p.Body)
 }
 
-func (p Post) HtmlBodySample() template.HTML {
+// HTMLBodySample returns the first 150 characters of a post to display as
+// summary in the list view
+func (p post) HTMLBodySample() template.HTML {
 	if len(p.Body) > 150 {
-		sample_body := string(p.Body[:150])
-		return template.HTML(sample_body + "<em> ... </em>")
-	} else {
-		return template.HTML(p.Body)
+		sampleBody := string(p.Body[:150])
+		return template.HTML(sampleBody + "<em> ... </em>")
 	}
+	return template.HTML(p.Body)
 }
 
 var db = initDb()
@@ -67,63 +69,63 @@ func initDb() *sqlx.DB {
 	return db
 }
 
-func CheckNonFatalErr(err error, msg string) {
+func checkNonFatalErr(err error, msg string) {
 	if err != nil {
 		log.Println(msg, err)
 	}
 }
 
-func CheckQueryErr(err error, query string) {
+func checkQueryErr(err error, query string) {
 	msg := "Error running the following query: " + query
-	CheckNonFatalErr(err, msg)
+	checkNonFatalErr(err, msg)
 }
 
 // createBlogPost inserts the new blog post into the database
-func createBlogPost(p Post) error {
+func createBlogPost(p post) error {
 	const query = `INSERT INTO post (title, body, date_published)
 	               VALUES ($1, $2, now())`
 
 	_, err := db.Exec(query, p.Title, p.Body)
-	CheckQueryErr(err, query)
+	checkQueryErr(err, query)
 	return err
 }
 
 // updateBlogPost updates the post with the specified id
-func updateBlogPost(id int, p Post) error {
+func updateBlogPost(id int, p post) error {
 	const query = `UPDATE post
 	               SET body=$2
 		       WHERE id=$1`
 
 	_, err := db.Exec(query, id, p.Body)
-	CheckQueryErr(err, query)
+	checkQueryErr(err, query)
 	return err
 }
 
 // getBlogPosts returns all posts from the database
-func getBlogPosts(offset int) ([]Post, error) {
+func getBlogPosts(offset int) ([]post, error) {
 	const query = `SELECT id, title, body, date_published
 	               FROM post
 		       ORDER BY date_published DESC
 		       LIMIT $1
 		       OFFSET $2`
-	var posts []Post
+	var posts []post
 
-	err := db.Select(&posts, query, NUMBER_POSTS_PER_PAGE, offset)
-	CheckQueryErr(err, query)
+	err := db.Select(&posts, query, numberPostsPerPage, offset)
+	checkQueryErr(err, query)
 
 	return posts, err
 }
 
 // getBlogPost returns the blog post with with give id
-func getBlogPost(id int) (Post, error) {
+func getBlogPost(id int) (post, error) {
 	const query = `SELECT id, title, body, date_published
 	               FROM post
 		       WHERE id=$1`
-	var post Post
+	var p post
 
-	err := db.Get(&post, query, id)
-	CheckQueryErr(err, query)
-	return post, err
+	err := db.Get(&p, query, id)
+	checkQueryErr(err, query)
+	return p, err
 }
 
 // returns the number of posts in the database
@@ -133,27 +135,27 @@ func getNumberOfPosts() (int, error) {
 		       FROM post`
 
 	err := db.Get(&nPosts, query)
-	CheckQueryErr(err, query)
+	checkQueryErr(err, query)
 	return nPosts, err
 }
 
 // createsComment creates a comment for a post
-func createComment(c Comment) error {
+func createComment(c comment) error {
 	const query = `INSERT INTO comments (author, body, post_id)
 	               VALUES ($1, $2, $3)`
-	_, err := db.Exec(query, c.Author, c.Body, c.Post_Id)
-	CheckQueryErr(err, query)
+	_, err := db.Exec(query, c.Author, c.Body, c.PostID)
+	checkQueryErr(err, query)
 	return err
 }
 
 // getCommentsForPost returns all of the comments for a particular post
-func getCommentsForPost(pId int) ([]Comment, error) {
+func getCommentsForPost(pID int) ([]comment, error) {
 	const query = `SELECT post_id, author, body, date_commented
 	               FROM comments
 		       WHERE post_id=$1 AND approved='t'
 		       ORDER BY date_commented DESC`
-	var comments []Comment
-	err := db.Select(&comments, query, pId)
-	CheckQueryErr(err, query)
+	var comments []comment
+	err := db.Select(&comments, query, pID)
+	checkQueryErr(err, query)
 	return comments, err
 }

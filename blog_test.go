@@ -81,7 +81,7 @@ func TearDownDatabase(db *sqlx.DB) {
 // with the latest schema and load fixture data, then destroy it after the
 // tests finish
 func TestMain(m *testing.M) {
-	server = httptest.NewServer(Handlers())
+	server = httptest.NewServer(handlers())
 	db = initDb()
 	SetUpDatabase(db)
 

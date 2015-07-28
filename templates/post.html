@@ -7,11 +7,11 @@
         <h2>{{.Post.Title}}</h2>
     </div>
     <div class="four columns">
-        <em>{{.Post.Date_Published.Day }}-{{.Post.Date_Published.Month}}-{{.Post.Date_Published.Year}}</em>
+        <em>{{.Post.DatePublished.Day }}-{{.Post.DatePublished.Month}}-{{.Post.DatePublished.Year}}</em>
     </div>
 </div>
 <div class="row article">
-    {{.Post.HtmlBody}}
+    {{.Post.HTMLBody}}
 </div>
 <hr />
 <h2>Comments</h2>
@@ -22,7 +22,7 @@
         <p>{{ .Body }}</p>
         <div class="u-pull-right">
             <p><span class="u-pull-right"><em>{{ .Author }}</em></span><br>
-            <span class="u-pull-right">{{.Date_Commented.Day }}-{{.Date_Commented.Month}}-{{.Date_Commented.Year}}</span></p>
+            <span class="u-pull-right">{{.DateCommented.Day }}-{{.DateCommented.Month}}-{{.DateCommented.Year}}</span></p>
         </div>
     </div>
 </div>
@@ -46,7 +46,7 @@
                 <textarea name="comment" class="u-full-width" id="comment" type="text" placeholder="comment..."></textarea>
             </div>
         </div>
-        <input style="display: none" id="post_id" name="post_id" class="hidden" type="text" value="{{ .Post.Id }}">
+        <input style="display: none" id="post_id" name="post_id" class="hidden" type="text" value="{{ .Post.ID }}">
         <div class="row">
             <div class="ten columns">
                 <input class="button-primary u-pull-right" value="Comment" type="submit">

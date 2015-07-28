@@ -1,4 +1,4 @@
-all: build test
+all: build test lint
 
 test:
 	go get github.com/stretchr/testify
@@ -18,3 +18,6 @@ build: clean
 
 clean:
 	-rm gobananas
+
+lint:
+	golint .

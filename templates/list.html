@@ -10,12 +10,12 @@
                 <a class="title" href="/article/{{ .Id }}">{{.Title}}</a>
             </div>
             <div class="two columns">
-                <em>{{.Date_Published.Day }}-{{.Date_Published.Month}}-{{.Date_Published.Year}}</em>
+                <em>{{.DatePublished.Day }}-{{.DatePublished.Month}}-{{.DatePublished.Year}}</em>
             </div>
         </div>
         <div class="row">
             <div class="ten columns">
-                <p class="sample">{{.HtmlBodySample}}</p>
+                <p class="sample">{{.HTMLBodySample}}</p>
             </div>
         </div>
     </br>
@@ -25,12 +25,12 @@
 <div class="row">
     <div class="five columns">
         {{ if .Less }}
-            <a href="/blog/{{ .Prev_Page }}">&lt- Previous</a>
+            <a href="/blog/{{ .PrevPage }}">&lt- Previous</a>
         {{ end }}
     </div>
     <div class="five columns u-pull-right">
         {{ if .More }}
-            <a href="/blog/{{ .Next_Page }}">Next -&gt</a>
+            <a href="/blog/{{ .NextPage }}">Next -&gt</a>
         {{ end }}
     </div>
 </div>

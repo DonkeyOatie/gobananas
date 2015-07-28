@@ -17,29 +17,30 @@ import (
 	"github.com/unrolled/render"
 )
 
-func (c *Comment) FieldMap(httpRequest *http.Request) binding.FieldMap {
+// FieldMap maps the POST parameters to the comment struct members
+func (c *comment) FieldMap(httpRequest *http.Request) binding.FieldMap {
 	return binding.FieldMap{
-		&c.Author:  "author",
-		&c.Body:    "comment",
-		&c.Post_Id: "post_id",
+		&c.Author: "author",
+		&c.Body:   "comment",
+		&c.PostID: "post_id",
 	}
 }
 
-var ADMIN_USER = os.Getenv("BA_USER")
-var ADMIN_PASS = os.Getenv("BA_PASS")
+var adminUser = os.Getenv("BA_USER")
+var adminPass = os.Getenv("BA_PASS")
 
-var TEMPLATE_DIR = os.Getenv("TEMPLATE_DIR")
-var STATIC_DIR = os.Getenv("STATIC_DIR")
+var templateDir = os.Getenv("TEMPLATE_DIR")
+var staticDir = os.Getenv("STATIC_DIR")
 
-const NUMBER_POSTS_PER_PAGE = 5
+const numberPostsPerPage = 5
 
 // renderer is our global renderer, used for returning pretty JSON
 var renderer = render.New(render.Options{IndentJSON: true})
 
 // parse the templates once and hold them in memory
-var templates = template.Must(template.ParseGlob(fmt.Sprintf("%s/*", TEMPLATE_DIR)))
+var templates = template.Must(template.ParseGlob(fmt.Sprintf("%s/*", templateDir)))
 
-func Handlers() *mux.Router {
+func handlers() *mux.Router {
 	r := mux.NewRouter().StrictSlash(false)
 
 	// Home Page
@@ -67,13 +68,13 @@ func Handlers() *mux.Router {
 }
 
 func main() {
-	if ADMIN_USER == "" || ADMIN_PASS == "" {
+	if adminUser == "" || adminPass == "" {
 		log.Fatalln("need to set admin username and password")
 	}
-	fs := http.FileServer(http.Dir(STATIC_DIR))
+	fs := http.FileServer(http.Dir(staticDir))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	http.Handle("/", Handlers())
+	http.Handle("/", handlers())
 
 	http.ListenAndServe(":8000", nil)
 }
@@ -85,42 +86,42 @@ func handleViewHomePage(w http.ResponseWriter, req *http.Request) {
 
 // handleViewBlogList renders the list.html template
 func handleViewBlogList(w http.ResponseWriter, req *http.Request) {
-	var page_int int
+	var pageInt int
 	var offset int
 	var err error
 
 	vars := mux.Vars(req)
 	if page, ok := vars["page"]; ok {
-		page_int, err = strconv.Atoi(page)
+		pageInt, err = strconv.Atoi(page)
 		if err != nil {
 			renderer.JSON(w, 400, "Invalid page request")
 			return
 		}
 	} else {
-		page_int = 1
+		pageInt = 1
 	}
 
-	offset = (page_int - 1) * NUMBER_POSTS_PER_PAGE
+	offset = (pageInt - 1) * numberPostsPerPage
 	nPosts, _ := getNumberOfPosts()
 	posts, _ := getBlogPosts(offset)
 
-	post_list := struct {
-		Posts        []Post
-		Next_Page    int
-		Prev_Page    int
-		Current_Page int
-		More         bool
-		Less         bool
+	postList := struct {
+		Posts       []post
+		NextPage    int
+		PrevPage    int
+		CurrentPage int
+		More        bool
+		Less        bool
 	}{
 		posts,
-		page_int + 1,
-		page_int - 1,
-		page_int,
-		(offset + NUMBER_POSTS_PER_PAGE) < nPosts,
-		page_int > 1,
+		pageInt + 1,
+		pageInt - 1,
+		pageInt,
+		(offset + numberPostsPerPage) < nPosts,
+		pageInt > 1,
 	}
 
-	templates.ExecuteTemplate(w, "blog_list", post_list)
+	templates.ExecuteTemplate(w, "blog_list", postList)
 }
 
 // handleViewBlogPost renders a single blog post corresponding to the id in the URL
@@ -133,18 +134,18 @@ func handleViewBlogPost(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	post, _ := getBlogPost(id)
+	p, _ := getBlogPost(id)
 	comments, _ := getCommentsForPost(id)
 
-	post_page := struct {
-		Post     Post
-		Comments []Comment
+	postPage := struct {
+		Post     post
+		Comments []comment
 	}{
-		post,
+		p,
 		comments,
 	}
 
-	templates.ExecuteTemplate(w, "blog", post_page)
+	templates.ExecuteTemplate(w, "blog", postPage)
 }
 
 // handleViewContactPage renders the contact template
@@ -154,22 +155,22 @@ func handleViewContactPage(w http.ResponseWriter, req *http.Request) {
 
 // handleAddCommentToPost takes comment data and adds it to the post
 func handleAddCommentToPost(w http.ResponseWriter, req *http.Request) {
-	var comment Comment
+	var c comment
 
-	binding.Bind(req, &comment)
-	err := createComment(comment)
+	binding.Bind(req, &c)
+	err := createComment(c)
 	if err != nil {
 		renderer.JSON(w, 500, "Failed to create comment")
 		return
 	}
-	url := fmt.Sprintf("/article/%d", comment.Post_Id)
+	url := fmt.Sprintf("/article/%d", c.PostID)
 	http.Redirect(w, req, url, http.StatusFound)
 }
 
 // checkBasicAuth checks the admin username and password
 func checkBasicAuth(w http.ResponseWriter, req *http.Request) bool {
 	username, password, _ := req.BasicAuth()
-	if username != os.Getenv("BA_USER") || password != os.Getenv("BA_PASS") {
+	if username != adminUser || password != adminPass {
 		renderer.JSON(w, 403, "Be gone, pest")
 		return false
 	}
@@ -183,7 +184,7 @@ func handleAddBlogPost(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var post Post
+	var post post
 
 	title := req.FormValue("title")
 	if title == "" {
