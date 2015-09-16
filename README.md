@@ -3,7 +3,7 @@
 # golang_blog
 My personal blog site written in go
 
-![Image of Monster](http://s2.postimg.org/4nr30k8p5/Nathan.jgp)
+![Image of Monster](http://s2.postimg.org/4nr30k8p5/Nathan.jpg)
 
 Feel free to use it, but first a few points
 
