@@ -3,6 +3,8 @@
 # golang_blog
 My personal blog site written in go
 
+![Image of Monste](rhttp://s2.postimg.org/4nr30k8p5/Nathan.jgp)
+
 Feel free to use it, but first a few points
 
 - It makes no attempts to be generic, its my personal site
