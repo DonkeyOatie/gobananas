@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/nkhumphreys/gobananas.svg)](https://travis-ci.org/nkhumphreys/gobananas)
 
-# golang_blog
+# gobananas
 My personal blog site written in go
 
 ![Image of Monster](http://s2.postimg.org/4nr30k8p5/Nathan.jpg)
