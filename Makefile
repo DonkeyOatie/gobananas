@@ -20,7 +20,6 @@ coverhtml: test
 
 build: clean
 	go build
-	strip gobananas
 
 clean:
 	-rm gobananas
